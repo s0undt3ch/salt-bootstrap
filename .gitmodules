@@ -1,0 +1,3 @@
+[submodule "tests/ext/shunit2"]
+	path = tests/ext/shunit2
+	url = git@github.com:s0undt3ch/shunit2.git
