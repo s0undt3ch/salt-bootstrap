@@ -2225,6 +2225,19 @@ install_fedora_git() {
 }
 
 install_fedora_git_post() {
+
+    if [ "x$(which chcon)" != "x" ]; then
+        # For SELinux enabled machines, let's set the proper execution context
+        for fname in ${SALT_GIT_CHECKOUT_DIR}/scripts/*; do
+
+            # Skip if not meant to be installed
+            [ $(basename $fname) = "minion" ] && [ $_INSTALL_MINION -eq $BS_FALSE ] && continue
+            [ $(basename $fname) = "master" ] && [ $_INSTALL_MASTER -eq $BS_FALSE ] && continue
+            [ $(basename $fname) = "syndic" ] && [ $_INSTALL_SYNDIC -eq $BS_FALSE ] && continue
+            chcon system_u:object_r:rpm_exec_t:s0 $fname > /dev/null 2>&1
+        done
+    fi
+
     for fname in minion master syndic; do
 
         # Skip if not meant to be installed
@@ -2387,6 +2400,24 @@ install_centos_git() {
 }
 
 install_centos_git_post() {
+
+    if [ "x$(which chcon)" != "x" ]; then
+        # For SELinux enabled machines, let's set the proper execution context
+        for fname in ${SALT_GIT_CHECKOUT_DIR}/scripts/*; do
+
+            # Skip if not meant to be installed
+            [ $(basename $fname) = "minion" ] && [ $_INSTALL_MINION -eq $BS_FALSE ] && continue
+            [ $(basename $fname) = "master" ] && [ $_INSTALL_MASTER -eq $BS_FALSE ] && continue
+            [ $(basename $fname) = "syndic" ] && [ $_INSTALL_SYNDIC -eq $BS_FALSE ] && continue
+
+            if [ $DISTRO_MAJOR_VERSION -eq 5 ]; then
+                chcon -t system_u:system_r:rpm_exec_t:s0 $fname > /dev/null 2>&1
+            else
+                chcon system_u:object_r:rpm_exec_t:s0 $fname > /dev/null 2>&1
+            fi
+        done
+    fi
+
     for fname in master minion syndic; do
 
         # Skip if not meant to be installed
