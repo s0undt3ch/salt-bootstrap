@@ -2236,9 +2236,9 @@ install_fedora_git_post() {
             [ $script_fname = "master" ] && [ $_INSTALL_MASTER -eq $BS_FALSE ] && continue
             [ $script_fname = "syndic" ] && [ $_INSTALL_SYNDIC -eq $BS_FALSE ] && continue
 
-            installed_script=$(which $script_name)
+            installed_script=$(which $script_fname)
             if [ ! -f $installed_script ]; then
-                echodebug "The script ${script_name} was not found in PATH"
+                echodebug "The script ${script_fname} was not found in PATH"
                 continue
             fi
 
@@ -2424,9 +2424,9 @@ install_centos_git_post() {
             [ $script_fname = "master" ] && [ $_INSTALL_MASTER -eq $BS_FALSE ] && continue
             [ $script_fname = "syndic" ] && [ $_INSTALL_SYNDIC -eq $BS_FALSE ] && continue
 
-            installed_script=$(which $script_name)
+            installed_script=$(which $script_fname)
             if [ ! -f $installed_script ]; then
-                echodebug "The script ${script_name} was not found in PATH"
+                echodebug "The script ${script_fname} was not found in PATH"
                 continue
             fi
 
