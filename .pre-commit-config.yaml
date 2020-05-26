@@ -19,9 +19,3 @@ repos:
         pass_filenames: false
         files: '.github/workflows/templates/.*'
         language: script
-
-      - id: shellcheck
-        name: Run ShellCheck against bootstrap-salt.sh
-        entry: koalaman/shellcheck-alpine:v0.6.0 shellcheck -s sh -f tty
-        files: 'bootstrap-salt\.sh'
-        language: docker_image
