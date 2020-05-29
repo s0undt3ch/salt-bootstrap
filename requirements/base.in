@@ -2,3 +2,4 @@ blessings
 colorama
 distro
 pygit2
+virtualenv

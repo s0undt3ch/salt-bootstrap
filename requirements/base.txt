@@ -4,11 +4,17 @@
 #
 #    pip-compile requirements/base.in
 #
+appdirs==1.4.4            # via virtualenv
 blessings==1.7            # via -r requirements/base.in
 cached-property==1.5.1    # via pygit2
 cffi==1.14.0              # via pygit2
 colorama==0.4.3           # via -r requirements/base.in
+distlib==0.3.0            # via virtualenv
 distro==1.5.0             # via -r requirements/base.in
+filelock==3.0.12          # via virtualenv
+importlib-metadata==1.6.0  # via virtualenv
 pycparser==2.20           # via cffi
 pygit2==1.2.1             # via -r requirements/base.in
-six==1.15.0               # via blessings
+six==1.15.0               # via blessings, virtualenv
+virtualenv==20.0.21       # via -r requirements/base.in
+zipp==3.1.0               # via importlib-metadata

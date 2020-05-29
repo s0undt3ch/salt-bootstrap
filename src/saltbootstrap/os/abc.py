@@ -1,9 +1,14 @@
 import logging
+import shutil
 from dataclasses import dataclass
 from dataclasses import field
 from typing import List
 
+import pygit2
+from virtualenv.__main__ import run_with_catch
+
 from saltbootstrap import subprocess
+from saltbootstrap.exceptions import RequiredBinaryNotFound
 
 MISSING_DEFAULT = "missing-default-value"
 
@@ -52,8 +57,43 @@ class OperatingSystemGitBase(OperatingSystemBase):
     installation_type: str = "git"
     upstream_salt_repo: str = "https://github.com/saltstack/salt.git"
 
-    def clone_salt_repo(self):
-        pass
+    def clone_salt_repo(self, repo_address, repo_path, salt_version):
+        log.info(f"Cloning {repo_address} to {repo_path}")
+        if not repo_path.exists():
+            repo = pygit2.clone_repository(repo_address, str(repo_path))
+        else:
+            repo = pygit2.Repository(str(repo_path))
+
+        if repo_address != self.upstream_salt_repo:
+            log.info(f"Grabbing tags from upstream repo at {self.upstream_salt_repo}")
+            try:
+                repo.remotes["upstream"]
+            except KeyError:
+                repo.remotes.create("upstream", self.upstream_salt_repo)
+            repo.remotes["upstream"].fetch()
+
+        local_ref = f"refs/heads/{salt_version}"
+        remote_ref = f"refs/remotes/origin/{salt_version}"
+        tag_ref = f"refs/tags/{salt_version}"
+        for ref in repo.listall_references():
+            if ref.startswith((tag_ref, remote_ref, local_ref)):
+                break
+        else:
+            log.error(f"Could not find a referece to {salt_version}")
+        log.info(f"Checking out {salt_version} at {repo_path}")
+        repo.checkout(ref)
+
+    def create_virtualenv(self, virtualenv_path, virtualenv_python=None):
+        if virtualenv_python is None:
+            virtualenv_python = shutil.which("python")
+        if virtualenv_python is None:
+            raise RequiredBinaryNotFound("Could not find a python binary on the system")
+        run_with_catch([f"--python={virtualenv_python}", virtualenv_path])
+
+    def bootstrap_system(self, virtualenv=None, virtualenv_python=None):
+        """
+        Bootstrap Salt in the system
+        """
 
 
 def _all_subclasses(cls):

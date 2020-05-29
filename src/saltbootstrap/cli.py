@@ -16,6 +16,7 @@ from typing import List
 import blessings
 
 import saltbootstrap.output
+from saltbootstrap.exceptions import SaltBoostrapBaseException
 from saltbootstrap.os import abc
 from saltbootstrap.utils import platform
 
@@ -50,7 +51,6 @@ log = logging.getLogger(__name__)
 def main(args: List[str] = sys.argv[1:]) -> None:
     global term
 
-    log.warning("It Starts!")
     parser = argparse.ArgumentParser(
         description=f"Python application to {term.bold}Bootstrap Salt{term.normal}!"
     )
@@ -106,6 +106,25 @@ def main(args: List[str] = sys.argv[1:]) -> None:
             f"Default {term.bold(abc.OperatingSystemGitBase.upstream_salt_repo)}"
         ),
     )
+    install_options.add_argument(
+        "--virtualenv",
+        default=None,
+        help=(
+            f"Bootstrap salt into a virtualenv. {term.red}This will install all requirements "
+            f"from PyPi{term.normal}"
+        ),
+    )
+    install_options.add_argument(
+        "--virtualenv-python",
+        default=None,
+        help=(
+            "The path to the python binary to use when creating the virtualenv. If not defined "
+            "whatever python binary is found on $PATH will be used"
+        ),
+    )
+
+    parser.add_argument("install_type", default="pkg", nargs="?", metavar="INSTALL_TYPE")
+    parser.add_argument("salt_version", default="latest", nargs="?", metavar="SALT_VERSION")
 
     # Buckle Up!
     options = parser.parse_args(args=args)
@@ -124,15 +143,19 @@ def main(args: List[str] = sys.argv[1:]) -> None:
     # Setup logging
     saltbootstrap.output.setup_logging(options.log_level, term)
 
+    log.warning("Buckle Up!")
+
     # Take care of our temp directory
     if isinstance(options.tempdir, str):
         options.tempdir = pathlib.Path(options.tempdir).resolve()
 
-    if options.tempdir.is_dir():
+    if not options.tempdir.is_dir():
         os.makedirs(str(options.tempdir))
 
-    log.info(f"Temporary Directory Path: {options.tempdir}")
-    log.info(f"Bootstrap log file path: {options.log_file.name}")
+    log.info(f"{term.bold}Temporary Directory Path{term.normal}: {options.tempdir}")
+    log.info(f"{term.bold}Bootstrap log file path{term.normal}: {options.log_file.name}")
+
+    print(options)
 
     try:
         distro_name, distro_version, distro_codename = platform.detect()
@@ -143,8 +166,11 @@ def main(args: List[str] = sys.argv[1:]) -> None:
         print(f" - Distribution Codename: {term.bold}{distro_codename}{term.normal}",)
 
         for subclass in abc.get_operating_system_implementations():
-            klass = subclass()
-            print(klass)
+            if subclass.__name__.endswith("Git"):
+                klass = subclass()
+                print(klass)
+                klass.clone_salt_repo(options.repo, options.tempdir / "salt", "v3000.3")
+                klass.create_virtualenv(options.virtualenv, options.virtualenv_python)
     except KeyboardInterrupt:
         log.warning("KeyboardInterrupt caught. Exiting...")
         parser.exit(0)
@@ -154,4 +180,7 @@ def main(args: List[str] = sys.argv[1:]) -> None:
     except subprocess.CalledProcessError as exc:
         log.error(f"The command '{' '.join(exc.cmd)}' failed with exitcode {exc.returncode}")
         parser.exit(exc.returncode)
+    except SaltBoostrapBaseException as exc:
+        log.error(f"{exc}")
+        parser.exit(1)
     parser.exit(0)
