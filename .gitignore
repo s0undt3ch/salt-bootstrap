@@ -9,3 +9,75 @@
 .kitchen
 .bundle
 Gemfile.lock
+
+/build
+__pycache__/
+*.py[co]
+*.sw[a-p]
+doc/_build
+doc/doc-archive.tar.gz
+dist
+MANIFEST
+*~
+*#
+*.wpr
+*.wpu
+*.DS_Store
+.pytest_cache
+.mypy_cache/*
+
+# setuptools stuff
+*.egg-info
+
+# code coverage outputs genereated by coverage.py
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# IDE files
+/.settings
+/.project
+/.pydevproject
+/.idea
+/.ropeproject
+.ropeproject
+*_flymake.py
+/*.iml
+*.sublime-project
+*.sublime-workspace
+
+# ignore ctags file
+tags
+
+# ignore Vagrant file
+**/Vagrantfile
+**/.vagrant
+
+# Compiled translation files should not be VCS'ed
+# locale/zh_CN/LC_MESSAGES/topics/virt/nic.mo
+*.mo
+.doctrees
+
+# Pycharm
+.idea
+
+# VS Code
+.vscode
+
+# Ignore tox virtualenvs
+/.tox/
+
+# Ignore nox virtualenvs
+/.nox/
+
+# Ignore pyenv files
+.python-version
+
+# Kitchen tests files
+.kitchen.local.yml
+kitchen.local.yml
+.kitchen/
+.bundle/
+Gemfile.lock
+/artifacts/
