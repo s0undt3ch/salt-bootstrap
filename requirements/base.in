@@ -1,3 +1,4 @@
 blessings
 colorama
 distro
+pygit2
