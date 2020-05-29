@@ -4,6 +4,11 @@ class SaltBoostrapBaseException(Exception):
     """
 
 
+class SaltBootstrapExit(SystemExit):
+    """
+    """
+
+
 class RequiredBinaryNotFound(SaltBoostrapBaseException):
     """
     Exception raised when a required binary is not found

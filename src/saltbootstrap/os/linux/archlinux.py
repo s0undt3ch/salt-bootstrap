@@ -16,6 +16,8 @@ class CommonFunctionalityMixin:
             self.run("pacman-key", "--populate", "archlinux")
 
     def upgrade_system(self):
+        if self._system_upgraded:
+            return
         log.warning("Upgrading System")
         # Pacman does not resolve dependencies on outdated versions
         # They always need to be updated
@@ -26,6 +28,18 @@ class CommonFunctionalityMixin:
         pacman_db_upgrade_path = shutil.which("pacman-db-upgrade")
         if pacman_db_upgrade_path:
             self.run(pacman_db_upgrade_path)
+        self._system_upgraded = True
+
+    def update_package_database(self):
+        try:
+            self._package_db_updated
+        except AttributeError:
+            self.run("pacman", "-Syy")
+            super().__setattr__("_package_db_updated", True)
+
+    def _install_system_package(self, package: str):
+        self.update_package_database()
+        return self.run("pacman", "-S", "--noconfirm", "--needed", package)  # type: ignore[attr-defined]
 
 
 # @dataclass(frozen=True, repr=True)
@@ -37,7 +51,7 @@ class CommonFunctionalityMixin:
 
 
 @dataclass(frozen=True, repr=True)
-class ArchLinuxGit(abc.OperatingSystemGitBase, CommonFunctionalityMixin):
+class ArchLinuxGit(CommonFunctionalityMixin, abc.OperatingSystemGitBase):
 
     name: str = "arch"
     display_name: str = "Arch Linux"

@@ -17,6 +17,7 @@ import blessings
 
 import saltbootstrap.output
 from saltbootstrap.exceptions import SaltBoostrapBaseException
+from saltbootstrap.exceptions import SaltBootstrapExit
 from saltbootstrap.os import abc
 from saltbootstrap.utils import platform
 
@@ -166,11 +167,13 @@ def main(args: List[str] = sys.argv[1:]) -> None:
         print(f" - Distribution Codename: {term.bold}{distro_codename}{term.normal}",)
 
         for subclass in abc.get_operating_system_implementations():
-            if subclass.__name__.endswith("Git"):
+            if subclass.__name__ == "ArchLinuxGit":
                 klass = subclass()
                 print(klass)
                 klass.clone_salt_repo(options.repo, options.tempdir / "salt", "v3000.3")
                 klass.create_virtualenv(options.virtualenv, options.virtualenv_python)
+                klass.pip_install_salt(options.tempdir / "salt", options.virtualenv)
+                break
     except KeyboardInterrupt:
         log.warning("KeyboardInterrupt caught. Exiting...")
         parser.exit(0)
@@ -183,4 +186,10 @@ def main(args: List[str] = sys.argv[1:]) -> None:
     except SaltBoostrapBaseException as exc:
         log.error(f"{exc}")
         parser.exit(1)
+    except SaltBootstrapExit as exc:
+        parser.exit(exc.code)
     parser.exit(0)
+
+
+if __name__ == "__main__":
+    main()
