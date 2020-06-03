@@ -64,6 +64,7 @@ SALT_BRANCHES = [
     '2018-3',
     '2019-2',
     '3000',
+    '3001',
     'master',
     'latest'
 ]
@@ -78,11 +79,16 @@ BRANCH_DISPLAY_NAMES = {
     '2018-3': 'v2018.3',
     '2019-2': 'v2019.2',
     '3000': 'v3000',
+    # XXX: REMOVE WHEN 3001 final is out
+    '3001rc1': 'v3001rc1',
+    #'3001': 'v3001',
     'master': 'Master',
     'latest': 'Latest'
 }
 
 STABLE_BRANCH_BLACKLIST = [
+    # XXX: REMOVE WHEN 3001 final is out
+    "3001rc1",
 ]
 
 LATEST_PKG_BLACKLIST = [
@@ -114,13 +120,16 @@ def generate_test_jobs():
     for distro in LINUX_DISTROS + OSX + WINDOWS:
         for branch in SALT_BRANCHES:
 
+            try:
+                fbranch = float(branch.replace("-", "."))
+            except ValueError:
+                fbranch = 0
+
             if branch == 'master' and distro in SALT_POST_3000_BLACKLIST:
                 continue
-            try:
-                if int(branch) >= 3000 and distro in SALT_POST_3000_BLACKLIST:
-                    continue
-            except ValueError:
-                pass
+
+            if fbranch >= 3000 and distro in SALT_POST_3000_BLACKLIST:
+                continue
 
             if branch == 'latest':
                 if distro in LATEST_PKG_BLACKLIST:
@@ -155,12 +164,13 @@ def generate_test_jobs():
                     # Salt's master branch no longer supports Python 2
                     continue
 
-                try:
-                    if int(branch) >= 3000 and python_version == 'py2':
-                        # Salt's 300X versions no longer supports Python 2
-                        continue
-                except ValueError:
-                    pass
+                if fbranch >= 3000 and python_version == 'py2':
+                    # Salt's 300X versions no longer supports Python 2
+                    continue
+
+                # XXX: REMOVE WHEN 3001 final is out
+                if fbranch > 3000:
+                    branch = "3001rc1"
 
                 for bootstrap_type in ('stable', 'git'):
                     if bootstrap_type == 'stable':
@@ -176,17 +186,12 @@ def generate_test_jobs():
                         if distro.startswith("fedora") and branch != "latest":
                             # Fedora does not keep old builds around
                             continue
-
                     if bootstrap_type == "git":
                         if python_version == "py3":
                             if distro in ("arch", "fedora-32"):
                                 allowed_branches = ["master"]
-                                try:
-                                    int_branch = int(branch)
-                                    if int_branch > 3000:
-                                        allowed_branches.append(branch)
-                                except ValueError:
-                                    pass
+                                if fbranch > 3000:
+                                    allowed_branches.append(branch)
                                 if branch not in allowed_branches:
                                     # Arch and Fedora default to py3.8
                                     continue
